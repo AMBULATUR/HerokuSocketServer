@@ -45,26 +45,23 @@ namespace SocketClient
 
     class Program
     {
-
+        static string port; 
         static async void StartServerAsync()
         {
             Console.WriteLine("Boot server");
-            var port = Environment.GetEnvironmentVariable("PORT");
-            Console.WriteLine("CNAME : {0}", Environment.GetEnvironmentVariable("CNAME"));
-            Console.WriteLine("Port " + port);
+            port = Environment.GetEnvironmentVariable("PORT");
+            Console.WriteLine("Port {0}", port);
             await Task.Run(() => new Server(Convert.ToInt32(port)));
         }
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World! Automatic Deploy");
+            Console.WriteLine("Deploy project");
 
             try
             {
                 StartServerAsync();
-                while (true)
-                    Task.Delay(1500);
-                //  SendMessageFromSocket(11000);
+                SocketServer(Convert.ToInt32(port));
             }
             catch (Exception ex)
             {
@@ -76,44 +73,65 @@ namespace SocketClient
             }
         }
 
-        static void SendMessageFromSocket(int port)
+        static void SocketServer(int port)
         {
-            // Буфер для входящих данных
-            byte[] bytes = new byte[1024];
-
-            // Соединяемся с удаленным устройством
-
-            // Устанавливаем удаленную точку для сокета
+            // Устанавливаем для сокета локальную конечную точку
             IPHostEntry ipHost = Dns.GetHostEntry("localhost");
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, port);
 
-            Socket sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            // Создаем сокет Tcp/Ip
+            Socket sListener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            // Соединяем сокет с удаленной точкой
-            sender.Connect(ipEndPoint);
+            // Назначаем сокет локальной конечной точке и слушаем входящие сокеты
+            try
+            {
+                sListener.Bind(ipEndPoint);
+                sListener.Listen(10);
 
-            Console.Write("Введите сообщение: ");
-            string message = Console.ReadLine();
+                // Начинаем слушать соединения
+                while (true)
+                {
+                    Console.WriteLine("Ожидаем соединение через порт {0}", ipEndPoint);
 
-            Console.WriteLine("Сокет соединяется с {0} ", sender.RemoteEndPoint.ToString());
-            byte[] msg = Encoding.UTF8.GetBytes(message);
+                    // Программа приостанавливается, ожидая входящее соединение
+                    Socket handler = sListener.Accept();
+                    string data = null;
 
-            // Отправляем данные через сокет
-            int bytesSent = sender.Send(msg);
+                    // Мы дождались клиента, пытающегося с нами соединиться
 
-            // Получаем ответ от сервера
-            int bytesRec = sender.Receive(bytes);
+                    byte[] bytes = new byte[1024];
+                    int bytesRec = handler.Receive(bytes);
 
-            Console.WriteLine("\nОтвет от сервера: {0}\n\n", Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
 
-            // Используем рекурсию для неоднократного вызова SendMessageFromSocket()
-            if (message.IndexOf("<TheEnd>") == -1)
-                SendMessageFromSocket(port);
+                    // Показываем данные на консоли
+                    Console.Write("Полученный текст: " + data + "\n\n");
 
-            // Освобождаем сокет
-            sender.Shutdown(SocketShutdown.Both);
-            sender.Close();
+                    // Отправляем ответ клиенту\
+                    string reply = "Спасибо за запрос в " + data.Length.ToString()
+                            + " символов";
+                    byte[] msg = Encoding.UTF8.GetBytes(reply);
+                    handler.Send(msg);
+
+                    if (data.IndexOf("<TheEnd>") > -1)
+                    {
+                        Console.WriteLine("Сервер завершил соединение с клиентом.");
+                        break;
+                    }
+
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                Console.ReadLine();
+            }
         }
     }
 }
