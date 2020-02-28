@@ -45,12 +45,12 @@ namespace SocketClient
 
     class Program
     {
- 
+
         static async void StartServerAsync()
         {
             Console.WriteLine("Boot server");
             var port = Environment.GetEnvironmentVariable("PORT");
-            Console.WriteLine(Environment.GetEnvironmentVariable("CNAME"));
+            Console.WriteLine("CNAME : {0}", Environment.GetEnvironmentVariable("CNAME"));
             Console.WriteLine("Port " + port);
             await Task.Run(() => new Server(Convert.ToInt32(port)));
         }
@@ -62,7 +62,9 @@ namespace SocketClient
             try
             {
                 StartServerAsync();
-              //  SendMessageFromSocket(11000);
+                while (true)
+                    Task.Delay(1500);
+                //  SendMessageFromSocket(11000);
             }
             catch (Exception ex)
             {
