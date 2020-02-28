@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,9 +54,33 @@ namespace SocketClient
             Console.WriteLine("Port {0}", port);
             await Task.Run(() => new Server(Convert.ToInt32(port)));
         }
+      
+
+        private static IPAddress GetDnsAdress()
+        {
+            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            foreach (NetworkInterface networkInterface in networkInterfaces)
+            {
+                if (networkInterface.OperationalStatus == OperationalStatus.Up)
+                {
+                    IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
+                    IPAddressCollection dnsAddresses = ipProperties.DnsAddresses;
+
+                    foreach (IPAddress dnsAdress in dnsAddresses)
+                    {
+                        return dnsAdress;
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Unable to find DNS Address");
+        }
 
         static void Main(string[] args)
         {
+            Console.WriteLine(GetDnsAdress());
+
             Console.WriteLine("Deploy project");
 
             try
@@ -72,6 +97,8 @@ namespace SocketClient
                 Console.ReadLine();
             }
         }
+
+
 
         static void SocketServer(int port)
         {
