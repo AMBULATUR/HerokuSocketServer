@@ -9,15 +9,44 @@ using System.Threading.Tasks;
 
 namespace SocketClient
 {
-  
+
     class Program
     {
+        private static int GetPort()
+        {//same as nestat -a
+            Console.WriteLine("Введите PORT");
+            int port = Convert.ToInt32(Console.ReadLine());
+            bool isAvailable = true;
+
+            IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
+
+            foreach (TcpConnectionInformation tcpi in tcpConnInfoArray)
+            {
+                if (tcpi.LocalEndPoint.Port == port)
+                {
+                    isAvailable = false;
+                    Console.WriteLine("Invalid Port");
+                    break;
+                }
+            }
+
+            if (isAvailable == true)
+                return port;
+            else
+            {
+                GetPort();
+                return 0;
+            }
+
+        }
+
         static void Main(string[] args)
         {
             try
             {
                 Console.WriteLine("Port to listen && HOST");
-                SocketServer(Convert.ToInt32(Console.ReadLine()),Console.ReadLine());
+                SocketServer(GetPort(), Console.ReadLine());
             }
             catch (Exception ex)
             {
@@ -29,45 +58,27 @@ namespace SocketClient
             }
         }
 
-
-
-        static void SocketServer(int port,string host)
+        static void SocketServer(int port, string host)
         {
-            IPHostEntry ipHost = Dns.GetHostEntry(host);
-            IPAddress ipAddr = ipHost.AddressList[0];
-            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, port+1);
+            var Host = Dns.GetHostEntry(host);
+            var ipv4 = Host.AddressList[0];
+            var ipEndPoint = new IPEndPoint(ipv4, port);
+            var Listener = new Socket(ipv4.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            // Создаем сокет Tcp/Ip
-            Socket sListener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-            // Назначаем сокет локальной конечной точке и слушаем входящие сокеты
             try
             {
-                sListener.Bind(ipEndPoint);
-                sListener.Listen(10);
-
-                // Начинаем слушать соединения
+                Listener.Bind(ipEndPoint);
+                Listener.Listen(10);
                 while (true)
                 {
-                    Console.WriteLine("Ожидаем соединение через порт {0}", ipEndPoint);
-
-                    // Программа приостанавливается, ожидая входящее соединение
-                    Socket handler = sListener.Accept();
+                    Console.WriteLine("Server port {0}", ipEndPoint);
+                    Socket handler = Listener.Accept(); //not async
                     string data = null;
-
-                    // Мы дождались клиента, пытающегося с нами соединиться
-
                     byte[] bytes = new byte[1024];
                     int bytesRec = handler.Receive(bytes);
-
                     data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
-
-                    // Показываем данные на консоли
-                    Console.Write("Полученный текст: " + data + "\n\n");
-
-                    // Отправляем ответ клиенту\
-                    string reply = "Спасибо за запрос в " + data.Length.ToString()
-                            + " символов";
+                    Console.WriteLine("Received: {0}", data);
+                    string reply = "Hello, message lgth " + data.Length.ToString();
                     byte[] msg = Encoding.UTF8.GetBytes(reply);
                     handler.Send(msg);
 

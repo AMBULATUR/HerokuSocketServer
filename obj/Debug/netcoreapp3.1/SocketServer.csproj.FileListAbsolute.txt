@@ -1,0 +1,11 @@
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.exe
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.deps.json
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.runtimeconfig.json
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.runtimeconfig.dev.json
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.dll
+C:\Users\Wrong\Source\repos\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.pdb
+C:\Users\Wrong\Source\repos\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.csprojAssemblyReference.cache
+C:\Users\Wrong\Source\repos\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.AssemblyInfoInputs.cache
+C:\Users\Wrong\Source\repos\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.AssemblyInfo.cs
+C:\Users\Wrong\Source\repos\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.dll
+C:\Users\Wrong\Source\repos\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.pdb
